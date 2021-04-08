@@ -1,0 +1,7 @@
+setup.py
+/home/francisyu/543/GAN2Shape/gan2shape/stylegan2/stylegan2-pytorch/op/fused_bias_act.cpp
+/home/francisyu/543/GAN2Shape/gan2shape/stylegan2/stylegan2-pytorch/op/fused_bias_act_kernel.cu
+fused.egg-info/PKG-INFO
+fused.egg-info/SOURCES.txt
+fused.egg-info/dependency_links.txt
+fused.egg-info/top_level.txt
