@@ -4,7 +4,8 @@ import ntpath
 import time
 from . import util
 from . import html
-from scipy.misc import imresize
+# from scipy.misc import imresize
+from skimage.transform import resize
 
 
 class Visualizer():
@@ -101,17 +102,19 @@ class Visualizer():
         if not hasattr(self, 'plot_data'):
             self.plot_data = {'X': [], 'Y': [], 'legend': list(errors.keys())}
         self.plot_data['X'].append(epoch + counter_ratio)
-        self.plot_data['Y'].append([errors[k].cpu().data.numpy() for k in self.plot_data['legend']])
+        self.plot_data['Y'].append([errors[k].cpu().data.item() for k in self.plot_data['legend']])
+        # self.plot_data['Y'].append([errors[k].cpu().data.numpy() for k in self.plot_data['legend']])
         self.vis.line(
-            X=np.stack([np.array(self.plot_data['X'])] * len(self.plot_data['legend']), 1),
-            Y=np.array(self.plot_data['Y']),
+            X=np.stack([np.array(self.plot_data['X'])] * len(self.plot_data['legend']), 1).tolist(),
+            Y=np.array(self.plot_data['Y']).tolist(),
+            # X=np.stack([np.array(self.plot_data['X'])] * len(self.plot_data['legend']), 1),
+            # Y=np.array(self.plot_data['Y']),
             opts={
                 'title': self.name + ' loss over time',
                 'legend': self.plot_data['legend'],
                 'xlabel': 'epoch',
                 'ylabel': 'loss'},
             win=self.display_id)
-
     # errors: same format as |errors| of plotCurrentErrors
     def print_current_errors(self, epoch, i, errors, t):
         message = '(epoch: %d, iters: %d, time: %.3f) ' % (epoch, i, t)
@@ -137,9 +140,11 @@ class Visualizer():
             save_path = os.path.join(image_dir, image_name)
             h, w, _ = im.shape
             if aspect_ratio > 1.0:
-                im = imresize(im, (h, int(w * aspect_ratio)), interp='bicubic')
+                # im = imresize(im, (h, int(w * aspect_ratio)), interp='bicubic')
+                im = resize(im, (h, int(w * aspect_ratio)), order = 3)
             if aspect_ratio < 1.0:
-                im = imresize(im, (int(h / aspect_ratio), w), interp='bicubic')
+                # im = imresize(im, (int(h / aspect_ratio), w), interp='bicubic')
+                im = resize(im, (int(h / aspect_ratio), w), order = 3)
             util.save_image(im, save_path)
 
             ims.append(image_name)

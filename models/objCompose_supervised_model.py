@@ -136,8 +136,6 @@ class objComposeSuperviseModel(BaseModel):
             self.loss_segmetation = Variable(torch.Tensor(1).fill_(0).cuda())
         self.softmax = torch.nn.Softmax(dim=1)
    
-
-
     def set_input_train(self, input):
         ''' samples of real distribution (from training set) to be used at test time'''
         self.ex_B = input['B']
@@ -188,13 +186,13 @@ class objComposeSuperviseModel(BaseModel):
         self.B_paths = input['B_paths']
 
         if len(self.gpu_ids) > 0:
-            self.input_A1 = self.input_A1.cuda(self.gpu_ids[0], async=True)
-            self.input_A2 = self.input_A2.cuda(self.gpu_ids[0], async=True)
-            self.input_B1 = self.input_B1.cuda(self.gpu_ids[0], async=True)
-            self.input_B2 = self.input_B2.cuda(self.gpu_ids[0], async=True)
-            self.input_B1_T = self.input_B1_T.cuda(self.gpu_ids[0], async=True)
-            self.input_B2_T = self.input_B2_T.cuda(self.gpu_ids[0], async=True)
-            self.input_B = self.input_B.cuda(self.gpu_ids[0], async=True)
+            self.input_A1 = self.input_A1.cuda(self.gpu_ids[0], non_blocking=True)
+            self.input_A2 = self.input_A2.cuda(self.gpu_ids[0], non_blocking=True)
+            self.input_B1 = self.input_B1.cuda(self.gpu_ids[0], non_blocking=True)
+            self.input_B2 = self.input_B2.cuda(self.gpu_ids[0], non_blocking=True)
+            self.input_B1_T = self.input_B1_T.cuda(self.gpu_ids[0], non_blocking=True)
+            self.input_B2_T = self.input_B2_T.cuda(self.gpu_ids[0], non_blocking=True)
+            self.input_B = self.input_B.cuda(self.gpu_ids[0], non_blocking=True)
 
 
         #ground truth segmentation masks

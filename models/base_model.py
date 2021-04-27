@@ -122,7 +122,7 @@ class BaseModel():
         for name in var_names:
             if isinstance(name, str):
                 var = getattr(self, name)
-                setattr(self, name, var.cuda(self.gpu_ids[0], async=True))
+                setattr(self, name, var.cuda(self.gpu_ids[0], non_blocking=True))
 
 
     def tnsrs2ims(self, tensor_names):

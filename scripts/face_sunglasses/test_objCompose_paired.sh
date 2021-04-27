@@ -33,8 +33,8 @@ n_latest=10000
 display_freq=1
 print_freq=20
 update_html_freq=5
-display_port=8774
-CUDA_ID=2
+display_port=8888
+CUDA_ID=3
 
 
 if [ ! -d "./checkpoints/${name}" ]; then

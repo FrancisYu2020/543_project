@@ -64,9 +64,9 @@ class AFNComposeModel(BaseModel):
         self.B_paths = input['B_paths']
 
         if len(self.gpu_ids) > 0:
-            self.input_A1 = self.input_A1.cuda(self.gpu_ids[0], async=True)
-            self.input_A2 = self.input_A2.cuda(self.gpu_ids[0], async=True)
-            self.input_B = self.input_B.cuda(self.gpu_ids[0], async=True)
+            self.input_A1 = self.input_A1.cuda(self.gpu_ids[0], non_blocking = True)
+            self.input_A2 = self.input_A2.cuda(self.gpu_ids[0], non_blocking = True)
+            self.input_B = self.input_B.cuda(self.gpu_ids[0], non_blocking = True)
 
 
 

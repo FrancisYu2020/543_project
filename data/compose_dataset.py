@@ -11,7 +11,8 @@ from data.image_folder import make_dataset
 from PIL import Image
 import numpy as np
 from scipy import misc
-from scipy.misc import imread
+# from scipy.misc import imread
+from imageio import imread
 import torch
 import random
 import ntpath

@@ -29,12 +29,12 @@ niter_decay=300
 which_epoch=0
 which_epoch_completion=0
 
-CUDA_ID=0
+CUDA_ID=3
 display_freq=550
 print_freq=30
 update_html_freq=550
 save_epoch_freq=20
-display_port=8774
+display_port=8888
 
 
 if [ ! -d "./checkpoints/${name}" ]; then

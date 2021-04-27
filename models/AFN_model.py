@@ -67,11 +67,11 @@ class AFNModel(BaseModel):
         self.B_paths = input['B_paths']
 
         if len(self.gpu_ids) > 0:
-            self.input = self.input.cuda(self.gpu_ids[0], async=True)
-            self.target = self.target.cuda(self.gpu_ids[0], async=True)
-            self.mask_inp = self.mask_inp.cuda(self.gpu_ids[0], async=True)
-            self.mask_tgt = self.mask_tgt.cuda(self.gpu_ids[0], async=True)
-            self.view_trans = self.view_trans.cuda(self.gpu_ids[0], async=True)
+            self.input = self.input.cuda(self.gpu_ids[0], non_blocking=True)
+            self.target = self.target.cuda(self.gpu_ids[0], non_blocking=True)
+            self.mask_inp = self.mask_inp.cuda(self.gpu_ids[0], non_blocking=True)
+            self.mask_tgt = self.mask_tgt.cuda(self.gpu_ids[0], non_blocking=True)
+            self.view_trans = self.view_trans.cuda(self.gpu_ids[0], non_blocking=True)
 
 
 
@@ -83,8 +83,8 @@ class AFNModel(BaseModel):
         gx = torch.Tensor(gx)
         gy = torch.Tensor(gy)
         if len(self.gpu_ids) > 0:
-            gx = gx.cuda(self.gpu_ids[0], async=True)
-            gy = gy.cuda(self.gpu_ids[0], async=True)
+            gx = gx.cuda(self.gpu_ids[0], non_blocking=True)
+            gy = gy.cuda(self.gpu_ids[0], non_blocking=True)
 
         gxy = Variable(torch.cat((gx.unsqueeze(0), gy.unsqueeze(0)), 0)).unsqueeze(0)
         gxy = gxy.repeat(flow.size(0), 1, 1, 1)

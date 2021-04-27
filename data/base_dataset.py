@@ -4,7 +4,8 @@ import torchvision.transforms as transforms
 import torch
 from torch import index_select, LongTensor, nn
 from scipy import misc
-from scipy.misc import imread
+from imageio import imread
+# from scipy.misc import imread
 import numpy as np
 
 class BaseDataset(data.Dataset):

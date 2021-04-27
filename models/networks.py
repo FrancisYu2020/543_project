@@ -616,7 +616,7 @@ class SpatialTransformer(nn.Module):
         h = input.size(2)
         w = input.size(3)
         if len(self.gpu_ids)  and isinstance(input.data, torch.cuda.FloatTensor):
-            mask = torch.Tensor(input.size()).fill_(1).cuda(self.gpu_ids[0], async=True)
+            mask = torch.Tensor(input.size()).fill_(1).cuda(self.gpu_ids[0], non_blocking=True)
         ONES = mask.clone()
         mask.index_fill_(2, LongTensor([0, h-1]).cuda(self.gpu_ids[0]), 0)
         mask.index_fill_(3, LongTensor([0, w-1]).cuda(self.gpu_ids[0]), 0)
@@ -722,7 +722,7 @@ class DeepSpatialTransformer(nn.Module):
         h = input.size(2)
         w = input.size(3)
         if len(self.gpu_ids)  and isinstance(input.data, torch.cuda.FloatTensor):
-            mask = torch.Tensor(input.size()).fill_(1).cuda(self.gpu_ids[0], async=True)
+            mask = torch.Tensor(input.size()).fill_(1).cuda(self.gpu_ids[0], non_blocking=True)
         ONES = mask.clone()
         mask.index_fill_(2, LongTensor([0, h-1]).cuda(self.gpu_ids[0]), 0)
         mask.index_fill_(3, LongTensor([0, w-1]).cuda(self.gpu_ids[0]), 0)
@@ -1062,7 +1062,7 @@ class DOAFNModel(nn.Module):
     def forward(self, img, view):
         view = view.view([view.size(0), view.size(1)*view.size(2)]).type(torch.FloatTensor)
         if len(self.gpu_ids) and isinstance(img.data, torch.cuda.FloatTensor):
-            view = view.cuda(self.gpu_ids[0], async=True)
+            view = view.cuda(self.gpu_ids[0], non_blocking=True)
             img = nn.parallel.data_parallel(self.encoder_conv_inp, img, self.gpu_ids)
             img = img.view([img.size(0), 512*4*4])
             img = nn.parallel.data_parallel(self.encoder_fc_inp, img, self.gpu_ids)
