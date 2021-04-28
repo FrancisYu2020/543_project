@@ -673,13 +673,14 @@ class SpatialTransformer(nn.Module):
         else:
             return x1,x2
 
-
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+############################## my code ########################################
 # Deeper Relative Spatial Transformer Network
 class DeepSpatialTransformer(nn.Module):
     def __init__(self, input_nc, n_blocks=0, gpu_ids=[],y_x=1):
         super(DeepSpatialTransformer, self).__init__()
         self.gpu_ids = gpu_ids
-        self.input_nc = input_nc
+        self.input_nc = input_nc # originally it is 6, now it will be 9, 6 for object 2 (face), 3 for object 1 (sunglasses)
         self.n_blocks = n_blocks
         # Spatial transformer localization-network
         #128X128
@@ -739,8 +740,14 @@ class DeepSpatialTransformer(nn.Module):
         xs = xs.view(-1, 128 * self.out_dim * self.out_dim)
         ind1 = Variable(LongTensor(range(0,2)))
         ind2 = Variable(LongTensor(range(2,4)))
-        inp1 = Variable(LongTensor(range(0,int(input.size(1)/2))))
-        inp2 = Variable(LongTensor(range(int(input.size(1)/2),input.size(1))))
+        
+        # inp1 = Variable(LongTensor(range(0,int(input.size(1)/2))))
+        # inp2 = Variable(LongTensor(range(int(input.size(1)/2),input.size(1))))
+
+        # now we only take the first 3 channel (RGB) for inp1 and all 3 for inp2
+        inp1 = Variable(LongTensor(range(0,3))) # channel 0-5 are for input 1, 0-2 are RGB, 3-5 are surface norm
+        inp2 = Variable(LongTensor(range(6,9))) # channel 6-8 are for input 2
+
 
         if len(self.gpu_ids)  and isinstance(input.data, torch.cuda.FloatTensor):        
             theta = nn.parallel.data_parallel(self.fc_loc, xs, self.gpu_ids)
@@ -777,7 +784,117 @@ class DeepSpatialTransformer(nn.Module):
             x2_linear = F.grid_sample(input_2, grid_2, padding_mode="border")
             return x1,x2, x1_linear, x2_linear
         return x1,x2
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+#####################################################################################
+############################## original code ########################################
+#####################################################################################
+# # Deeper Relative Spatial Transformer Network
+# class DeepSpatialTransformer(nn.Module):
+#     def __init__(self, input_nc, n_blocks=0, gpu_ids=[],y_x=1):
+#         super(DeepSpatialTransformer, self).__init__()
+#         self.gpu_ids = gpu_ids
+#         self.input_nc = input_nc
+#         self.n_blocks = n_blocks
+#         # Spatial transformer localization-network
+#         #128X128
+#         self.localization = []
+#         self.localization += [nn.Conv2d(input_nc, 32, kernel_size=7),#122 #(122,250)
+#             nn.MaxPool2d(2, stride=2), #62 , #(62,126)
+#             nn.ReLU(True)]
+#         if y_x == 2:
+#             self.localization += [nn.Conv2d(32, 32, kernel_size=(1,5)),#(62, 122)
+#                 nn.MaxPool2d((1,2), stride=(1,2)), #(62, 62)
+#                 nn.ReLU(True)]
+#         self.localization += [nn.Conv2d(32, 64, kernel_size=5), #58 #(58, 58)
+#             nn.MaxPool2d(2, stride=2), #30
+#             nn.ReLU(True),
+#             nn.Conv2d(64, 128, kernel_size=5), #26
+#             nn.MaxPool2d(2, stride=2), #14
+#             nn.ReLU(True)]
+
+#         self.out_dim = 4
+#         for i in range(0,n_blocks):
+#             self.localization += [nn.Conv2d(128, 128, kernel_size=5),#10
+#                                 nn.MaxPool2d(2, stride=2),nn.ReLU(True)] #4
+
+#         self.localization = nn.Sequential(*self.localization)
+
+#         # Regressor for the 3 * 2 affine matrix
+#         self.fc_loc = nn.Sequential(
+#             nn.Linear(128 * self.out_dim * self.out_dim, 128),
+#             nn.ReLU(True),
+#             nn.Linear(128, 64),
+#             nn.ReLU(True),
+#             nn.Linear(64, 3*4)
+#         )
+
+
+#         self.fc_loc[4].weight.data.fill_(0)
+#         self.fc_loc[4].bias.data = torch.FloatTensor([1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0])
+
+#     def forward(self, input, no_translatoin=False):
+#         h = input.size(2)
+#         w = input.size(3)
+#         if len(self.gpu_ids)  and isinstance(input.data, torch.cuda.FloatTensor):
+#             mask = torch.Tensor(input.size()).fill_(1).cuda(self.gpu_ids[0], non_blocking=True)
+#         ONES = mask.clone()
+#         mask.index_fill_(2, LongTensor([0, h-1]).cuda(self.gpu_ids[0]), 0)
+#         mask.index_fill_(3, LongTensor([0, w-1]).cuda(self.gpu_ids[0]), 0)
+#         mask = Variable(mask)
+
+#         # misc.imsave('/home/sazadi/projects/objectComposition-Pytorch/mask.png', mask.data.cpu().numpy().transpose(1,2,0))
+#         input = torch.mul(input,mask) + (Variable(ONES) - mask)
+
+#         if len(self.gpu_ids)  and isinstance(input.data, torch.cuda.FloatTensor):
+#             xs = nn.parallel.data_parallel(self.localization, input, self.gpu_ids)
+#         else:
+#             xs = self.localization(input)
+
+#         xs = xs.view(-1, 128 * self.out_dim * self.out_dim)
+#         ind1 = Variable(LongTensor(range(0,2)))
+#         ind2 = Variable(LongTensor(range(2,4)))
+#         inp1 = Variable(LongTensor(range(0,int(input.size(1)/2))))
+#         inp2 = Variable(LongTensor(range(int(input.size(1)/2),input.size(1))))
+
+#         if len(self.gpu_ids)  and isinstance(input.data, torch.cuda.FloatTensor):        
+#             theta = nn.parallel.data_parallel(self.fc_loc, xs, self.gpu_ids)
+#             ind1 = ind1.cuda()
+#             ind2 = ind2.cuda()
+#             inp1 = inp1.cuda()
+#             inp2 = inp2.cuda()
+
+#         else:
+#             theta = self.fc_loc(xs)
+#         theta = theta.view(-1, 4, 3)
+
+
+#         theta_1 = index_select(theta,1, ind1)
+#         theta_2 = index_select(theta,1, ind2)
+#         if no_translatoin:
+#             translation_mat = Variable(torch.ones((2,3)).cuda(),requires_grad=False)
+#             translation_mat[:,2] = 0
+#             theta_1_linear = torch.mul(theta_1, translation_mat)
+#             theta_2_linear = torch.mul(theta_2, translation_mat)
+
+
+#         input_1 = index_select(input, 1, inp1)
+#         input_2 = index_select(input, 1, inp2)
+#         grid_1 = F.affine_grid(theta_1, input_1.size())
+#         grid_2 = F.affine_grid(theta_2, input_2.size())
+
+#         x1 = F.grid_sample(input_1, grid_1, padding_mode="border")
+#         x2 = F.grid_sample(input_2, grid_2, padding_mode="border")
+#         if no_translatoin:
+#             grid_1 = F.affine_grid(theta_1_linear, input_1.size())
+#             grid_2 = F.affine_grid(theta_2_linear, input_2.size())
+#             x1_linear = F.grid_sample(input_1, grid_1, padding_mode="border")
+#             x2_linear = F.grid_sample(input_2, grid_2, padding_mode="border")
+#             return x1,x2, x1_linear, x2_linear
+#         return x1,x2
+#####################################################################################
+############################## original code ########################################
+#####################################################################################
 
 #modified reimplementation of the view synthesis by appearance flow paper: encoder network
 class AFNconvModel(nn.Module):

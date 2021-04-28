@@ -40,7 +40,7 @@ class BaseOptions():
         self.parser.add_argument('--which_model_netD', type=str, default='n_layers', help='selects model to use for netD')
         self.parser.add_argument('--which_model_netG', type=str, default='resnetUp_6blocks', help='selects model to use for netG')
         self.parser.add_argument('--which_model_AFN', type=str, default='DOAFNCompose', help='which model to use for AFN model? fc or fullyconv?')
-        self.parser.add_argument('--STN_model', type=str, default='', help='which model to use for STN model? deep or vae or ?')
+        self.parser.add_argument('--STN_model', type=str, default='', help='which model to use for STN model? deep or vae or ?') # deep?
         self.parser.add_argument('--n_layers_D', type=int, default=3, help='only used if which_model_netD==n_layers')
         self.parser.add_argument('--gpu_ids', type=str, default='0', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         self.parser.add_argument('--name', type=str, default='experiment_name', help='name of the experiment. It decides where to store samples and models')
