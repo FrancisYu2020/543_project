@@ -11,7 +11,6 @@ from data.image_folder import make_dataset
 from PIL import Image
 import numpy as np
 from scipy import misc
-# from scipy.misc import imread
 from imageio import imread
 import torch
 import random
@@ -179,6 +178,7 @@ class ComposeAlignedDataset(BaseDataset):
             self.az_B = [x.strip().split(' ')[2] for x in self.info]
         else:
             self.B_paths = [x.strip().split(' ')[0] for x in self.info]
+            self.surfnorm_paths = [x.replace('paired/images', 'surface_normal') for x in self.B_paths]
 
         self.rgb=True if opt.input_nc==3 else False
         self.loadSizeX = opt.loadSizeX
@@ -189,6 +189,9 @@ class ComposeAlignedDataset(BaseDataset):
 
     def __getitem__(self, index):
         B_path = self.B_paths[index]
+        surfnorm_path = self.surfnorm_paths[index]
+        print(B_path)
+        print(surfnorm_path)
         if self.opt.random_view:
             az_B = int(self.az_B[index])
             az_diff = int(360/self.opt.num_az)
@@ -202,6 +205,10 @@ class ComposeAlignedDataset(BaseDataset):
         AB = Image.open(B_path).convert('RGB')
         AB = AB.resize((self.opt.loadSizeY*5, self.opt.loadSizeX), Image.BICUBIC)
         AB = transforms.ToTensor()(AB)
+
+        surfnorm = Image.open(surfnorm_path).convert('RGB')
+        surfnorm.resize((self.opt.loadSizeY, self.opt.loadSizeX), Image.BICUBIC)
+        surfnorm = transforms.ToTensor()(surfnorm)
         
         w_total = AB.size(2)
         w = int(w_total/5)
@@ -218,9 +225,11 @@ class ComposeAlignedDataset(BaseDataset):
             offset_center_min_y = int(self.loadSizeY/2.0 - self.fineSizeY/2.0)
             offset_center_max_y = int(self.loadSizeY/2.0 + self.fineSizeY/2.0)
 
+        # B is first image (composition)
         B = AB[:, h_offset:h_offset + self.fineSizeX,
                w_offset:w_offset + self.fineSizeY]
 
+        # B1 is the second image (input face)
         if self.opt.phase=='test':
             B1 = AB[:, offset_center_min_x:offset_center_max_x,
                    1*w +offset_center_min_y:1*w +offset_center_max_y]
@@ -228,10 +237,12 @@ class ComposeAlignedDataset(BaseDataset):
             B1 = AB[:, h_offset:h_offset + self.fineSizeX,
                    w + w_offset: w + w_offset + self.fineSizeY]
 
+        # B2 is the third image (input glasses)
         B2 = AB[:, offset_center_min_x:offset_center_max_x,
                2*w +offset_center_min_y:2*w +offset_center_max_y]
         
 
+        # B1_T is the fourth image (transformed face), B2_T is fifth (transformed glasses)
         B1_T = AB[:, h_offset:h_offset + self.fineSizeX,
                3*w + w_offset:3*w + w_offset + self.fineSizeY]
         B2_T = AB[:, h_offset:h_offset + self.fineSizeX,
@@ -261,6 +272,7 @@ class ComposeAlignedDataset(BaseDataset):
             A1 = B1.clone()
 
         A2 = B2.clone()
+        # A1 and A2 are same as B1, B2 (input face and input glasses)
         
         A1 = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(A1)
         A2 = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(A2)
@@ -269,6 +281,7 @@ class ComposeAlignedDataset(BaseDataset):
         B1_T = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(B1_T)
         B2_T = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(B2_T)
         B = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(B)
+        surfnorm = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(surfnorm)
 
         if not self.rgb:
             B = torch.mean(B, 0).unsqueeze(0)
@@ -278,10 +291,11 @@ class ComposeAlignedDataset(BaseDataset):
             B2 = torch.mean(B2, 0).unsqueeze(0)
             B1_T = torch.mean(B1_T, 0).unsqueeze(0)
             B2_T = torch.mean(B2_T, 0).unsqueeze(0)
+            surfnorm = torch.mean
 
 
         out_dict = {'B': B, 'B_paths': B_path,'B1':B1,'B2':B2,'B1_T':B1_T,'B2_T':B2_T, 'A1': A1, 'A2':A2, \
-                'A_paths':[A_path, B_path]}
+                'A_paths':[A_path, B_path], 'surfnorm':surfnorm}
 
         return out_dict
 
@@ -290,3 +304,4 @@ class ComposeAlignedDataset(BaseDataset):
 
     def name(self):
         return 'ComposeAlignedDataset'
+
