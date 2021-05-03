@@ -745,8 +745,8 @@ class DeepSpatialTransformer(nn.Module):
         # inp2 = Variable(LongTensor(range(int(input.size(1)/2),input.size(1))))
 
         # now we only take the first 3 channel (RGB) for inp1 and all 3 for inp2
-        inp1 = Variable(LongTensor(range(0,3))) # channel 0-5 are for input 1, 0-2 are RGB, 3-5 are surface norm
-        inp2 = Variable(LongTensor(range(6,9))) # channel 6-8 are for input 2
+        inp1 = Variable(LongTensor(range(0,3))) # channel 0-2 are for input 1, 3-5 are input 2
+        inp2 = Variable(LongTensor(range(3,6))) # channel 6-8 are for surface normal
 
 
         if len(self.gpu_ids)  and isinstance(input.data, torch.cuda.FloatTensor):        

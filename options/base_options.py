@@ -19,6 +19,7 @@ class BaseOptions():
     def initialize(self):
         self.parser.add_argument('--datalist', required=True, help='path to a txt file with each line: path_A, path_B, azimuth')
         self.parser.add_argument('--datalist_test', required=True, help='path to a txt file with each line: path_A, path_B, azimuth')
+        self.parser.add_argument('--datalist_surfnorm', required=True, help='path to a txt file with the surface normal paths')
         self.parser.add_argument('--test_path_azi', type=str, default='dataset/chair_table/test_random_azi.pkl', help='where is the pickle file including fixed random azimuth angles for test?')
         self.parser.add_argument('--num_az', type=int, default=36, help='number of azimuth angles in the viewpoint transformation')
         self.parser.add_argument('--batchSize', type=int, default=1, help='input batch size')

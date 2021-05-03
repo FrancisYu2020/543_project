@@ -52,7 +52,7 @@ class objComposeSuperviseModel(BaseModel):
 
         #Spatial Transformer networks
         self.netSTN_dec =  networks.define_STN(2*opt.output_nc, opt.fineSizeX, self.gpu_ids, y_x=self.y_x, STN_model=opt.STN_model)        
-        self.netSTN_c =  networks.define_STN(2*opt.output_nc, opt.fineSizeX, self.gpu_ids, y_x=self.y_x, STN_model=opt.STN_model)
+        self.netSTN_c =  networks.define_STN(3*opt.output_nc, opt.fineSizeX, self.gpu_ids, y_x=self.y_x, STN_model=opt.STN_model)
 
         if self.isTrain:
             use_sigmoid = opt.no_lsgan
@@ -161,14 +161,16 @@ class objComposeSuperviseModel(BaseModel):
         self.input_A1 = input['A1']
         self.input_A2 = input['A2']
         self.A_paths = input['A_paths']
+        self.input_surfnorm = input['surfnorm']
 
-        input_vars = ['input_A1', 'input_A2']
+        input_vars = ['input_A1', 'input_A2', 'surfnorm']
 
         if len(self.gpu_ids) > 0:
             self.tocuda(input_vars)
 
         self.real_A1 = Variable(self.input_A1)
         self.real_A2 = Variable(self.input_A2)
+        self.real_surfnorm = Variable(self.input_surfnorm)
 
 
 
@@ -182,6 +184,7 @@ class objComposeSuperviseModel(BaseModel):
         self.input_B2 = input['B2']
         self.input_B1_T = input['B1_T']
         self.input_B2_T = input['B2_T']
+        self.input_surfnorm = input['surfnorm']
         self.A_paths = input['A_paths']
         self.B_paths = input['B_paths']
 
@@ -193,6 +196,7 @@ class objComposeSuperviseModel(BaseModel):
             self.input_B1_T = self.input_B1_T.cuda(self.gpu_ids[0], non_blocking=True)
             self.input_B2_T = self.input_B2_T.cuda(self.gpu_ids[0], non_blocking=True)
             self.input_B = self.input_B.cuda(self.gpu_ids[0], non_blocking=True)
+            self.input_surfnorm = self.input_surfnorm.cuda(self.gpu_ids[0], non_blocking=True)
 
 
         #ground truth segmentation masks
@@ -212,7 +216,8 @@ class objComposeSuperviseModel(BaseModel):
         self.real_B2 = Variable(self.input_B2)
         self.real_B1_T = Variable(self.input_B1_T)
         self.real_B2_T = Variable(self.input_B2_T)
-        self.real_B = Variable(self.input_B) 
+        self.real_B = Variable(self.input_B)
+        self.real_surfnorm = Variable(self.input_surfnorm)
 
     def forward(self):
         '''starting from input object images'''
@@ -236,7 +241,7 @@ class objComposeSuperviseModel(BaseModel):
         #-------------------------
         # Composition network
         #-------------------------
-        self.fake_A1_T, self.fake_A2_T = (self.netSTN_c(torch.cat((self.fake_A1.detach(),self.fake_A2),1)))
+        self.fake_A1_T, self.fake_A2_T = (self.netSTN_c(torch.cat((self.fake_A1.detach(),self.fake_A2,self.real_surfnorm),1)))
         self.fake_A = torch.cat((self.fake_A1_T,self.fake_A2_T),1)
         self.fake_B = self.netG_comp(self.fake_A)
 

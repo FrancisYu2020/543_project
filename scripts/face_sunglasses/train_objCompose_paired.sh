@@ -10,9 +10,9 @@ obj2=sunglasses
 obj1=face
 mode=train
 name="${obj1}_${obj2}"
-datalist="dataset/${name}/paired_tst.txt"
+datalist="dataset/${name}/paired_valid.txt"
 datalist_test="dataset/${name}/test.txt"
-
+datalist_train_surfnorm="dataset/${name}/paired_surfnorm.txt"
 
 exp_name="paired_compGAN"
 name="${name}_train_${exp_name}"
@@ -56,4 +56,4 @@ CUDA_LAUNCH_BLOCKING=${CUDA_ID} CUDA_VISIBLE_DEVICES=${CUDA_ID} python3 -u -W ig
 								 --Thresh1 ${thresh1} --Thresh2 ${thresh2}\
 								 --display_port ${display_port} --print_freq ${print_freq}\
 								 --update_html_freq ${update_html_freq} --display_freq ${display_freq}  --save_epoch_freq ${save_epoch_freq} \
-								 --STN_model="deep"	
+								 --STN_model="deep" --datalist_surfnorm ${datalist_train_surfnorm}	

@@ -167,6 +167,9 @@ class ComposeAlignedDataset(BaseDataset):
             # datalist is a txt file containing paths of images in A,B,azi 
             self.info = f.readlines()
         self.info = sorted(self.info)
+        with open(opt.datalist_surfnorm) as g:
+            self.surfnorm_info = g.readlines()
+        self.surform_info = sorted(self.surfnorm_info)
         if opt.phase == 'test' and opt.random_view:
             if not os.path.exists(opt.test_path_azi):
                 azi = [random.randrange(-90, 91, 10) for x in range(int(opt.how_many))]
@@ -178,7 +181,7 @@ class ComposeAlignedDataset(BaseDataset):
             self.az_B = [x.strip().split(' ')[2] for x in self.info]
         else:
             self.B_paths = [x.strip().split(' ')[0] for x in self.info]
-            self.surfnorm_paths = [x.replace('paired/images', 'surface_normal') for x in self.B_paths]
+            self.surfnorm_paths = [x.strip().split(' ')[0] for x in self.surfnorm_info]
 
         self.rgb=True if opt.input_nc==3 else False
         self.loadSizeX = opt.loadSizeX
@@ -190,8 +193,6 @@ class ComposeAlignedDataset(BaseDataset):
     def __getitem__(self, index):
         B_path = self.B_paths[index]
         surfnorm_path = self.surfnorm_paths[index]
-        print(B_path)
-        print(surfnorm_path)
         if self.opt.random_view:
             az_B = int(self.az_B[index])
             az_diff = int(360/self.opt.num_az)
@@ -207,9 +208,9 @@ class ComposeAlignedDataset(BaseDataset):
         AB = transforms.ToTensor()(AB)
 
         surfnorm = Image.open(surfnorm_path).convert('RGB')
-        surfnorm.resize((self.opt.loadSizeY, self.opt.loadSizeX), Image.BICUBIC)
+        surfnorm = surfnorm.resize((self.opt.loadSizeY, self.opt.loadSizeX), Image.BICUBIC)
         surfnorm = transforms.ToTensor()(surfnorm)
-        
+
         w_total = AB.size(2)
         w = int(w_total/5)
         h = AB.size(1)
@@ -247,6 +248,10 @@ class ComposeAlignedDataset(BaseDataset):
                3*w + w_offset:3*w + w_offset + self.fineSizeY]
         B2_T = AB[:, h_offset:h_offset + self.fineSizeX,
                4*w + w_offset:4*w + w_offset + self.fineSizeY]
+        
+        # crop surfnorm similar to As and Bs
+        surfnorm = surfnorm[:, h_offset:h_offset + self.fineSizeX,
+                    w_offset:w_offset + self.fineSizeY]
 
         if self.opt.random_view:
 
@@ -291,7 +296,7 @@ class ComposeAlignedDataset(BaseDataset):
             B2 = torch.mean(B2, 0).unsqueeze(0)
             B1_T = torch.mean(B1_T, 0).unsqueeze(0)
             B2_T = torch.mean(B2_T, 0).unsqueeze(0)
-            surfnorm = torch.mean
+            surfnorm = torch.mean(surfnorm, 0).unsqueeze(0)
 
 
         out_dict = {'B': B, 'B_paths': B_path,'B1':B1,'B2':B2,'B1_T':B1_T,'B2_T':B2_T, 'A1': A1, 'A2':A2, \
