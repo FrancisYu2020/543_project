@@ -31,9 +31,9 @@ LR=0.0002
 EPOCH=600
 
 n_latest=10000
-display_freq=1
+display_freq=200
 print_freq=20
-update_html_freq=5
+update_html_freq=100
 display_port=1234
 CUDA_ID=3
 

@@ -163,7 +163,7 @@ class objComposeSuperviseModel(BaseModel):
         self.A_paths = input['A_paths']
         self.input_surfnorm = input['surfnorm']
 
-        input_vars = ['input_A1', 'input_A2', 'surfnorm']
+        input_vars = ['input_A1', 'input_A2', 'input_surfnorm']
 
         if len(self.gpu_ids) > 0:
             self.tocuda(input_vars)
